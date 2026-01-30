@@ -26,72 +26,64 @@
 
 <body class="bg-slate-50 min-h-screen py-12 px-4">
 
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
     <div class="bg-blue-900 px-8 py-8 text-white text-center">
       <h1 class="text-2xl font-bold uppercase tracking-wider">Member Registration</h1>
-      <p class="text-blue-200 mt-2 font-light">Submit member details for cover onboarding</p>
+      <p class="text-blue-200 mt-2 font-light">Add the Principal + dependants, then submit once</p>
     </div>
 
-    <form id="memberForm" class="p-8 space-y-6">
+    <form id="batchForm" class="p-8 space-y-8">
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Main Member *</label>
-        <input type="text" name="mainMember" required class="form-input" placeholder="Main member name (principal)" />
-      </div>
+      <!-- PRINCIPAL CONTACT (applies to the whole batch) -->
+      <section class="space-y-6">
+        <h2 class="text-lg font-bold text-gray-800">Principal Details (Contact & Cover)</h2>
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Member Name *</label>
-        <input type="text" name="memberName" required class="form-input" placeholder="Member to register" />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth *</label>
-          <input type="date" name="dob" required class="form-input" />
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Main Member (Principal) *</label>
+          <input id="mainMember" type="text" required class="form-input" placeholder="Principal member name" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Phone *</label>
+            <input id="phone" type="tel" required class="form-input" placeholder="0712345678" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+            <input id="email" type="email" required class="form-input" placeholder="email@example.com" />
+          </div>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Relationship *</label>
-          <select name="relationship" required class="form-input">
-            <option value="">Select</option>
-            <option value="Self">Self</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Child">Child</option>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Cover Option *</label>
+          <select id="cover" required class="form-input">
+            <option value="">Select cover</option>
+            <option value="200K Outpatient & 1M Inpatient">200K Outpatient & 1M Inpatient</option>
+            <option value="300K Outpatient & 2M Inpatient">300K Outpatient & 2M Inpatient</option>
           </select>
         </div>
+      </section>
 
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Gender *</label>
-          <select name="gender" required class="form-input">
-            <option value="">Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
+      <!-- MEMBERS LIST -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between gap-4">
+          <h2 class="text-lg font-bold text-gray-800">Members to Register</h2>
+          <button type="button" id="addDepBtn"
+            class="rounded-xl border border-blue-900 text-blue-900 px-4 py-2 font-semibold hover:bg-blue-50">
+            + Add Dependant
+          </button>
         </div>
 
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Phone *</label>
-          <input type="tel" name="phone" required class="form-input" placeholder="0712345678" />
-        </div>
-      </div>
+        <p class="text-sm text-gray-600">
+          You must include exactly one <b>Self</b> (the principal) and any number of dependants.
+        </p>
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
-        <input type="email" name="email" required class="form-input" placeholder="email@example.com" />
-      </div>
-
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Cover Option *</label>
-        <select name="cover" required class="form-input">
-          <option value="">Select cover</option>
-          <option value="200K Outpatient & 1M Inpatient">200K Outpatient & 1M Inpatient</option>
-          <option value="300K Outpatient & 2M Inpatient">300K Outpatient & 2M Inpatient</option>
-        </select>
-      </div>
+        <div id="membersContainer" class="space-y-4"></div>
+      </section>
 
       <button type="submit" id="submitBtn"
         class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3">
-        <span id="btnText">Submit</span>
+        <span id="btnText">Submit All Members</span>
         <div id="btnLoader" class="hidden loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-5 w-5"></div>
       </button>
 
@@ -104,13 +96,15 @@
     // ✅ Put your web app /exec URL here
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkC3mB5fuVTCLgjRKUQSlIAQXmWtJqDsSJ3t5c3c5ETB8t8-15PlDgAwnObA1ip5AADA/exec";
 
-    const form = document.getElementById("memberForm");
+    const membersContainer = document.getElementById("membersContainer");
+    const addDepBtn = document.getElementById("addDepBtn");
+
     const submitBtn = document.getElementById("submitBtn");
     const btnText = document.getElementById("btnText");
     const btnLoader = document.getElementById("btnLoader");
     const messageBox = document.getElementById("messageBox");
 
-    // Hidden iframe avoids CORS and ensures normal POST
+    // Hidden iframe avoids CORS for classic POST
     const iframe = document.createElement("iframe");
     iframe.name = "hidden_iframe";
     iframe.style.display = "none";
@@ -123,41 +117,16 @@
       awaitingResponse = false;
 
       showMessage("Submitted successfully.", "success");
-      form.reset();
 
       submitBtn.disabled = false;
-      btnText.textContent = "Submit";
+      btnText.textContent = "Submit All Members";
       btnLoader.classList.add("hidden");
-    });
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      if (!SCRIPT_URL.startsWith("https://script.google.com/macros/s/") || !SCRIPT_URL.endsWith("/exec")) {
-        showMessage("Invalid SCRIPT_URL. Use the Google Apps Script /exec URL.", "error");
-        return;
-      }
-
-      submitBtn.disabled = true;
-      btnText.textContent = "Processing...";
-      btnLoader.classList.remove("hidden");
-      messageBox.classList.add("hidden");
-
-      form.action = SCRIPT_URL;
-      form.method = "POST";
-      form.target = "hidden_iframe";
-
-      awaitingResponse = true;
-      form.submit();
-
-      setTimeout(() => {
-        if (!awaitingResponse) return;
-        awaitingResponse = false;
-        submitBtn.disabled = false;
-        btnText.textContent = "Submit";
-        btnLoader.classList.add("hidden");
-        showMessage("Submission may have been blocked. Check Apps Script → Executions for errors.", "error");
-      }, 15000);
+      // Reset whole UI
+      document.getElementById("batchForm").reset();
+      membersContainer.innerHTML = "";
+      // Re-add the principal member card (Self)
+      addMemberCard({ relationship: "Self", lockedRelationship: true });
     });
 
     function showMessage(text, type) {
@@ -167,6 +136,156 @@
       else messageBox.classList.add("bg-red-100", "text-red-800");
       messageBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }
+
+    function memberCardTemplate({ relationship = "Child", lockedRelationship = false } = {}) {
+      const id = "m_" + Math.random().toString(36).slice(2);
+      return `
+        <div class="border rounded-2xl p-5 bg-white shadow-sm" data-member-card="${id}">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="font-bold text-gray-800">Member</h3>
+            <button type="button"
+              class="removeBtn ${relationship === "Self" ? "hidden" : ""} text-sm font-semibold text-red-600 hover:underline">
+              Remove
+            </button>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Member Name *</label>
+              <input type="text" class="form-input memberName" required placeholder="Full name" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth *</label>
+              <input type="date" class="form-input dob" required />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Relationship *</label>
+              <select class="form-input relationship" ${lockedRelationship ? "disabled" : ""} required>
+                <option value="">Select</option>
+                <option value="Self" ${relationship === "Self" ? "selected" : ""}>Self</option>
+                <option value="Spouse" ${relationship === "Spouse" ? "selected" : ""}>Spouse</option>
+                <option value="Child" ${relationship === "Child" ? "selected" : ""}>Child</option>
+              </select>
+              ${lockedRelationship ? `<p class="text-xs text-gray-500 mt-1">Principal must be Self.</p>` : ""}
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Gender *</label>
+              <select class="form-input gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function addMemberCard({ relationship = "Child", lockedRelationship = false } = {}) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = memberCardTemplate({ relationship, lockedRelationship });
+      const card = wrapper.firstElementChild;
+
+      card.querySelector(".removeBtn")?.addEventListener("click", () => {
+        card.remove();
+      });
+
+      membersContainer.appendChild(card);
+    }
+
+    addDepBtn.addEventListener("click", () => {
+      addMemberCard({ relationship: "Child", lockedRelationship: false });
+    });
+
+    function collectBatchPayload() {
+      const mainMember = document.getElementById("mainMember").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const cover = document.getElementById("cover").value.trim();
+
+      if (!mainMember || !phone || !email || !cover) {
+        throw new Error("Please fill Principal Details (Main Member, Phone, Email, Cover).");
+      }
+
+      const cards = [...membersContainer.querySelectorAll("[data-member-card]")];
+      if (cards.length === 0) throw new Error("Add at least the principal member (Self).");
+
+      const members = cards.map((card, idx) => {
+        const memberName = card.querySelector(".memberName").value.trim();
+        const dob = card.querySelector(".dob").value;
+        const relationship = card.querySelector(".relationship").value.trim();
+        const gender = card.querySelector(".gender").value.trim();
+
+        if (!memberName || !dob || !relationship || !gender) {
+          throw new Error(`Please complete all fields for Member #${idx + 1}.`);
+        }
+
+        return { memberName, dob, relationship, gender };
+      });
+
+      const selfCount = members.filter(m => m.relationship === "Self").length;
+      if (selfCount !== 1) throw new Error("Exactly one member must be Relationship = Self.");
+
+      return { mainMember, phone, email, cover, members };
+    }
+
+    // Build initial member: Self
+    addMemberCard({ relationship: "Self", lockedRelationship: true });
+
+    document.getElementById("batchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (!SCRIPT_URL.startsWith("https://script.google.com/macros/s/") || !SCRIPT_URL.endsWith("/exec")) {
+        showMessage("Invalid SCRIPT_URL. Use the Google Apps Script /exec URL.", "error");
+        return;
+      }
+
+      let payload;
+      try {
+        payload = collectBatchPayload();
+      } catch (err) {
+        showMessage(err.message || "Please review the form.", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.textContent = "Processing...";
+      btnLoader.classList.remove("hidden");
+      messageBox.classList.add("hidden");
+
+      // We POST a single field called payload (JSON string)
+      const tempForm = document.createElement("form");
+      tempForm.action = SCRIPT_URL;
+      tempForm.method = "POST";
+      tempForm.target = "hidden_iframe";
+      tempForm.style.display = "none";
+
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "payload";
+      input.value = JSON.stringify(payload);
+
+      tempForm.appendChild(input);
+      document.body.appendChild(tempForm);
+
+      awaitingResponse = true;
+      tempForm.submit();
+
+      // cleanup after submit (don’t leave garbage forms)
+      setTimeout(() => tempForm.remove(), 1000);
+
+      setTimeout(() => {
+        if (!awaitingResponse) return;
+        awaitingResponse = false;
+        submitBtn.disabled = false;
+        btnText.textContent = "Submit All Members";
+        btnLoader.classList.add("hidden");
+        showMessage("Submission may have been blocked. Check Apps Script → Executions for errors.", "error");
+      }, 15000);
+    });
   </script>
 </body>
 </html>
